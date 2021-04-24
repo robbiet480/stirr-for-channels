@@ -10,7 +10,7 @@ This simple Docker image will generate an M3U playlist and EPG optimized for use
 
 Running the container is easy. Fire up the container as usual. You can set which port it runs on.
 
-    docker run -d --restart unless-stopped --name stirr-for-channels -p 8080:80 robbiet480/stirr-for-channels
+    docker run -d --restart unless-stopped --name stirr-for-channels -p 8181:80 robbiet480/stirr-for-channels
 
 By default, the service listens on port 80, but you can override it with the `PORT` environment variable.
 
@@ -19,7 +19,7 @@ You can manually set a station ID by setting the `STIRR_STATION_ID` environment 
 
 You can retrieve the playlist and EPG via the status page.
 
-    http://127.0.0.1:8080
+    http://127.0.0.1:8181
 
 ## Add Source to Channels
 
