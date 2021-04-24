@@ -158,7 +158,7 @@ func (c *ChannelStatus) M3ULine() string {
 		"#EXTINF:0",
 		fmt.Sprintf(`channel-id="%s"`, c.ID),
 		// fmt.Sprintf(`channel-number="%d"`, c.Number),
-		fmt.Sprintf(`tvg-logo="%s"`, c.Rss.Channel.Item.MediaContent.Logo.URL),
+		fmt.Sprintf(`tvg-logo="%s"`, c.ChannelLogoURL()),
 		fmt.Sprintf(`tvg-name="%s"`, c.Rss.Channel.Title),
 	}
 
