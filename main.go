@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sort"
 	"strings"
 	"text/template"
 	"time"
@@ -21,7 +22,7 @@ type StirrClient struct {
 	httpClient http.Client
 
 	Lineup       []Channel
-	channels     map[string]ChannelStatus
+	channels     []ChannelStatus
 	ProgramCount int
 
 	LastUpdate time.Time
@@ -118,7 +119,7 @@ func (s *StirrClient) FillCache() error {
 		if statusErr != nil {
 			return statusErr
 		}
-		status.Number = idx + 8001
+		status.Number = idx + 1
 
 		status.ID = fmt.Sprintf("stirr-%s", channel.ID)
 
@@ -132,16 +133,18 @@ func (s *StirrClient) FillCache() error {
 		status.Programs = programs
 
 		if s.channels == nil {
-			s.channels = make(map[string]ChannelStatus)
+			s.channels = make([]ChannelStatus, 0)
 		}
 
-		s.channels[channel.DisplayName] = *status
+		s.channels = append(s.channels, *status)
 	}
 	fmt.Println()
 	log.Println("Cache fill complete, loaded", len(lineup), "channels with", totalPrograms, "programs in guide")
 
 	s.LastUpdate = time.Now()
 	s.ProgramCount = totalPrograms
+
+	sort.Slice(s.channels, func(i, j int) bool { return s.channels[i].Number < s.channels[j].Number })
 
 	return nil
 }
