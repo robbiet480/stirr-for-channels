@@ -160,8 +160,11 @@ func (c *ChannelStatus) M3ULine() string {
 		// fmt.Sprintf(`channel-number="%d"`, c.Number),
 		fmt.Sprintf(`tvg-logo="%s"`, c.Rss.Channel.Item.MediaContent.Logo.URL),
 		fmt.Sprintf(`tvg-name="%s"`, c.Rss.Channel.Title),
-		fmt.Sprintf(`tvc-guide-title="%s"`, c.Rss.Channel.Item.MediaContent.MediaTitle.Content),
-		fmt.Sprintf(`tvc-guide-description="%s"`, c.Rss.Channel.Item.MediaContent.MediaDescription.Content),
+	}
+
+	if c.Rss.Channel.Item.MediaContent.MediaTitle.Content != "no-scheduled-programming" {
+		headerPieces = append(headerPieces, fmt.Sprintf(`tvc-guide-title="%s"`, c.Rss.Channel.Item.MediaContent.MediaTitle.Content))
+		headerPieces = append(headerPieces, fmt.Sprintf(`tvc-guide-description="%s"`, c.Rss.Channel.Item.MediaContent.MediaDescription.Content))
 	}
 
 	if !strings.Contains(c.MediaThumbnailURL(), "EPGLogo") {
