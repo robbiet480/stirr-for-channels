@@ -10,6 +10,7 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"sync"
 	"text/template"
 	"time"
 
@@ -26,6 +27,8 @@ type StirrClient struct {
 	ProgramCount int
 
 	LastUpdate time.Time
+	
+	sync.Mutex
 }
 
 func NewStirrClient() (*StirrClient, error) {
@@ -107,7 +110,11 @@ func (s *StirrClient) FillCache() error {
 		return lineupErr
 	}
 
+	s.Lock()
+	defer s.Unlock()
+
 	s.Lineup = lineup
+	s.channels = nil
 
 	log.Println("Found", len(lineup), "channels in lineup, getting channel metadata and guide. This may take a moment.")
 
@@ -132,10 +139,6 @@ func (s *StirrClient) FillCache() error {
 
 		status.Programs = programs
 
-		if s.channels == nil {
-			s.channels = make([]ChannelStatus, 0)
-		}
-
 		s.channels = append(s.channels, *status)
 	}
 	fmt.Println()
@@ -154,6 +157,9 @@ func playlist(client *StirrClient) http.HandlerFunc {
 		w.Header().Set("Content-Type", "audio/x-mpegurl")
 
 		allLines := []string{}
+		
+		client.Lock()
+		defer client.Unlock()
 
 		for _, channel := range client.channels {
 			allLines = append(allLines, channel.M3ULine())
@@ -171,6 +177,9 @@ func epg(client *StirrClient) http.HandlerFunc {
 			GeneratorInfoName: "stirr-for-channels",
 			GeneratorInfoURL:  "https://github.com/robbiet480/stirr-for-channels",
 		}
+
+		client.Lock()
+		defer client.Unlock()
 
 		for _, channel := range client.channels {
 			epg.Channels = append(epg.Channels, channel.XMLTV())
