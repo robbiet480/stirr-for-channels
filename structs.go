@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -140,53 +138,17 @@ type ChannelStatus struct {
 	} `json:"rss"`
 }
 
-func (c *ChannelStatus) MediaThumbnailURL() string {
-	parsed, parseErr := url.Parse(c.Rss.Channel.Item.MediaContent.MediaThumbnail[0].URL)
-	if parseErr != nil {
-		log.Println("Error when attempting to construct media thumbnail URL", parseErr)
-		return c.Rss.Channel.Item.MediaContent.MediaThumbnail[0].URL
-	}
-
-	split := strings.Split(parsed.Path, "/")
-	fileName := split[len(split)-1]
-
-	return fmt.Sprintf("https://komonews.com/resources/media2/4x3/full/800/center/90/%s", fileName)
-}
-
 func (c *ChannelStatus) M3ULine() string {
 	headerPieces := []string{
 		"#EXTINF:0",
 		fmt.Sprintf(`channel-id="%s"`, c.ID),
-		// fmt.Sprintf(`channel-number="%d"`, c.Number),
-		fmt.Sprintf(`tvg-logo="%s"`, c.ChannelLogoURL()),
+		fmt.Sprintf(`tvg-logo="%s"`, c.Rss.Channel.Item.MediaContent.Logo.URL),
 		fmt.Sprintf(`tvg-name="%s"`, c.Rss.Channel.Title),
-	}
-
-	if c.Rss.Channel.Item.MediaContent.MediaTitle.Content != "no-scheduled-programming" {
-		headerPieces = append(headerPieces, fmt.Sprintf(`tvc-guide-title="%s"`, c.Rss.Channel.Item.MediaContent.MediaTitle.Content))
-		headerPieces = append(headerPieces, fmt.Sprintf(`tvc-guide-description="%s"`, c.Rss.Channel.Item.MediaContent.MediaDescription.Content))
-	}
-
-	if !strings.Contains(c.MediaThumbnailURL(), "EPGLogo") {
-		headerPieces = append(headerPieces, fmt.Sprintf(`tvc-guide-art="%s"`, c.MediaThumbnailURL()))
 	}
 
 	cleaned := strings.ReplaceAll(strings.Join(headerPieces, " "), "\n", "")
 
 	return fmt.Sprintf("%s, %s\n%s", cleaned, c.Rss.Channel.Title, c.Rss.Channel.Item.Link)
-}
-
-func (c *ChannelStatus) ChannelLogoURL() string {
-	parsed, parseErr := url.Parse(c.Rss.Channel.Item.MediaContent.Logo.URL)
-	if parseErr != nil {
-		log.Println("Error when attempting to construct channel logo URL", parseErr)
-		return c.Rss.Channel.Item.MediaContent.Logo.URL
-	}
-
-	split := strings.Split(parsed.Path, "/")
-	fileName := split[len(split)-1]
-
-	return fmt.Sprintf("https://komonews.com/resources/media2/4x3/full/340/center/90/%s", fileName)
 }
 
 func (c *ChannelStatus) XMLTV() xmltv.Channel {
@@ -197,7 +159,7 @@ func (c *ChannelStatus) XMLTV() xmltv.Channel {
 			Value: strconv.Itoa(c.Number),
 		}},
 		Icons: []xmltv.Icon{{
-			Source: c.ChannelLogoURL(),
+			Source: c.Rss.Channel.Item.MediaContent.Logo.URL,
 			Width:  340,
 			Height: 255,
 		}},
