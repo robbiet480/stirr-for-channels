@@ -16,6 +16,7 @@ By default, the service listens on port 80, but you can override it with the `PO
 
 Upon startup, the service will ask Stirr for your local station ID and use it for all future requests.
 You can manually set a station ID by setting the `STIRR_STATION_ID` environment variable to something like `san-francisco`.
+Find valid station IDs [here](https://tin-torch-double.glitch.me/).
 
 You can retrieve the playlist and EPG via the status page.
 
