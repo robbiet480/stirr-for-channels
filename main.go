@@ -71,6 +71,10 @@ func (s *StirrClient) makeRequest(url string, output interface{}) error {
 		defer res.Body.Close()
 	}
 
+	if res.StatusCode != http.StatusOK {
+		return fmt.Errorf("unexpected response %v from %v", res.Status, url)
+	}
+
 	body, readErr := ioutil.ReadAll(res.Body)
 	if readErr != nil {
 		return readErr
@@ -124,7 +128,8 @@ func (s *StirrClient) FillCache() error {
 		fmt.Print(".")
 		status, statusErr := s.GetChannel(channel.DisplayName)
 		if statusErr != nil {
-			return statusErr
+			log.Println("Ignoring error on", channel.DisplayName, ":", statusErr)
+			return nil
 		}
 		status.Number = idx + 1
 
