@@ -71,6 +71,10 @@ func (s *StirrClient) makeRequest(url string, output interface{}) error {
 		defer res.Body.Close()
 	}
 
+	if res.StatusCode != http.StatusOK {
+		return fmt.Errorf("unexpected response %v from %v", res.Status, url)
+	}
+
 	body, readErr := ioutil.ReadAll(res.Body)
 	if readErr != nil {
 		return readErr
