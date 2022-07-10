@@ -129,7 +129,7 @@ func (s *StirrClient) FillCache() error {
 		status, statusErr := s.GetChannel(channel.DisplayName)
 		if statusErr != nil {
 			log.Println("Ignoring error on", channel.DisplayName, ":", statusErr)
-			return nil
+			continue
 		}
 		status.Number = idx + 1
 
