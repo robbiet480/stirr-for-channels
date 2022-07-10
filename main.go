@@ -128,7 +128,7 @@ func (s *StirrClient) FillCache() error {
 		fmt.Print(".")
 		status, statusErr := s.GetChannel(channel.DisplayName)
 		if statusErr != nil {
-			log.Println("Ignoring error on", channel.DisplayName, ":", statusErr)
+			log.Println("Ignoring channel error on", channel.DisplayName, ":", statusErr)
 			continue
 		}
 		status.Number = idx + 1
@@ -137,7 +137,8 @@ func (s *StirrClient) FillCache() error {
 
 		programs, programsErr := s.GetChannelPrograms(channel.DisplayName)
 		if programsErr != nil {
-			return programsErr
+			log.Println("Ignoring program error on", channel.DisplayName, ":", programsErr)
+			continue
 		}
 
 		totalPrograms = totalPrograms + len(programs)
