@@ -180,12 +180,18 @@ type Program struct {
 func (p *Program) XMLTV() xmltv.Programme {
 	start := xmltv.Time(p.Start)
 	stop := xmltv.Time(p.Stop)
+	var live *xmltv.ElementPresent
+	if p.IsLive {
+		tmp := xmltv.ElementPresent(p.IsLive)
+		live = &tmp
+	}
 	return xmltv.Programme{
 		Titles:       []xmltv.CommonElement{p.Title},
 		Descriptions: []xmltv.CommonElement{p.Description},
 		Categories:   p.Categories,
 		Start:        &start,
 		Stop:         &stop,
+		Live:         live,
 		Channel:      fmt.Sprintf("stirr-%s", p.Channel),
 	}
 }

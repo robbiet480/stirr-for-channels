@@ -156,6 +156,7 @@ type Programme struct {
 	Premiere        *CommonElement   `xml:"premiere,omitempty"         json:"premiere,omitempty"`
 	LastChance      *CommonElement   `xml:"last-chance,omitempty"      json:"last_chance,omitempty"`
 	New             *ElementPresent  `xml:"new"            json:"new,omitempty"`
+	Live            *ElementPresent  `xml:"live"           json:"live,omitempty"`
 	Subtitles       []Subtitle       `xml:"subtitles,omitempty"        json:"subtitles,omitempty"`
 	Ratings         []Rating         `xml:"rating,omitempty"           json:"ratings,omitempty"`
 	StarRatings     []Rating         `xml:"star-rating,omitempty"      json:"star_ratings,omitempty"`
