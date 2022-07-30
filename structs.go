@@ -177,13 +177,21 @@ type Program struct {
 	Categories  []xmltv.CommonElement `json:"category"`
 }
 
-func (p *Program) XMLTV() xmltv.Programme {
+func (p *Program) XMLTV(cs ChannelStatus) xmltv.Programme {
 	start := xmltv.Time(p.Start)
 	stop := xmltv.Time(p.Stop)
 	var live *xmltv.ElementPresent
 	if p.IsLive {
 		tmp := xmltv.ElementPresent(p.IsLive)
 		live = &tmp
+	}
+	for x, c := range p.Categories {
+		if c.Value == "HD Unknown" {
+			p.Categories[x].Value = "HD"
+		}
+	}
+	if strings.HasSuffix(cs.Rss.Channel.Title, "Movies") {
+		p.Categories = append(p.Categories, xmltv.CommonElement{Value: "Movie"})
 	}
 	return xmltv.Programme{
 		Titles:       []xmltv.CommonElement{p.Title},

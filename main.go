@@ -185,7 +185,7 @@ func epg(client *StirrClient) http.HandlerFunc {
 			epg.Channels = append(epg.Channels, channel.XMLTV())
 
 			for _, program := range channel.Programs {
-				epg.Programmes = append(epg.Programmes, program.XMLTV())
+				epg.Programmes = append(epg.Programmes, program.XMLTV(channel))
 			}
 		}
 
