@@ -12,19 +12,19 @@ jobs:
           go-version: '1.20'
 
       - name: Build
-        run: go build -o stirr -v ./...
+        run: go build -v .
 
       - name: Install xmltv
         run: sudo apt-get install -y xmltv
 
       - name: Run stirr-for-channels (national)
-        run: ./stirr &
+        run: ./stirr-for-channels &
         env:
           PORT: 8088
           STIRR_STATION_ID: national
 
       - name: Run stirr-for-channels (SF)
-        run: ./stirr &
+        run: ./stirr-for-channels &
         env:
           PORT: 8089
           STIRR_STATION_ID: san-francisco
