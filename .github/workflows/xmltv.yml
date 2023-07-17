@@ -29,6 +29,9 @@ jobs:
           PORT: 8089
           STIRR_STATION_ID: san-francisco
 
+      - name: Wait for stirr-for-channels to start
+        run: sleep 30
+
       - name: Download national EPG
         run: curl -o national.xml http://localhost:8088/epg.xml
 
