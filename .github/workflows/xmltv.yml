@@ -39,7 +39,7 @@ jobs:
         run: curl -o sf.xml http://localhost:8089/epg.xml
 
       - name: Validate national EPG
-        run: tv_validate_file national.xml
+        run: tv_validate_file --dtd-file internal/xmltv/xmltv_live.dtd national.xml
 
       - name: Validate SF EPG
-        run: tv_validate_file sf.xml
+        run: tv_validate_file --dtd-file internal/xmltv/xmltv_live.dtd sf.xml
