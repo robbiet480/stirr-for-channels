@@ -22,12 +22,13 @@ type StirrClient struct {
 
 	httpClient http.Client
 
-	Lineup       []Channel
-	channels     []ChannelStatus
-	ProgramCount int
+	Lineup        []Channel
+	CategoriesMap map[string]Category
+	channels      []ChannelStatus
+	ProgramCount  int
 
 	LastUpdate time.Time
-	
+
 	sync.Mutex
 }
 
@@ -89,10 +90,10 @@ func (s *StirrClient) GetStation() (string, error) {
 	return autodetect.Page[0].Button.MediaContent.SinclairActionConfig.Station[0], reqErr
 }
 
-func (s *StirrClient) GetChannels() ([]Channel, error) {
+func (s *StirrClient) GetChannels() (Lineup, error) {
 	var lineup Lineup
 	reqErr := s.makeRequest("https://ott-gateway-stirr.sinclairstoryline.com/api/rest/v3/channels/stirr", &lineup)
-	return lineup.Channels, reqErr
+	return lineup, reqErr
 }
 
 func (s *StirrClient) GetChannel(channelID string) (*ChannelStatus, error) {
@@ -117,23 +118,28 @@ func (s *StirrClient) FillCache() error {
 	s.Lock()
 	defer s.Unlock()
 
-	s.Lineup = lineup
 	s.channels = nil
 
-	log.Println("Found", len(lineup), "channels in lineup, getting channel metadata and guide. This may take a moment.")
+	s.CategoriesMap = make(map[string]Category)
+
+	for _, cat := range lineup.Categories {
+		s.CategoriesMap[cat.UUID] = cat
+	}
+
+	log.Println("Found", len(lineup.Channels), "channels in lineup, getting channel metadata and guide. This may take a moment.")
 
 	totalPrograms := 0
 
-	for idx, channel := range lineup {
+	for _, channel := range lineup.Channels {
 		fmt.Print(".")
 		status, statusErr := s.GetChannel(channel.DisplayName)
 		if statusErr != nil {
 			log.Println("Ignoring channel error on", channel.DisplayName, ":", statusErr)
 			continue
 		}
-		status.Number = idx + 1
+		status.Number = channel.Number
 
-		status.ID = fmt.Sprintf("stirr-%s", channel.ID)
+		status.ID = fmt.Sprintf("%s.stirr.com", strings.ReplaceAll(channel.ID, "-", ""))
 
 		programs, programsErr := s.GetChannelPrograms(channel.DisplayName)
 		if programsErr != nil {
@@ -145,10 +151,16 @@ func (s *StirrClient) FillCache() error {
 
 		status.Programs = programs
 
+		for _, cat := range channel.Categories {
+			if category, ok := s.CategoriesMap[cat.UUID]; ok {
+				status.Categories = append(status.Categories, category)
+			}
+		}
+
 		s.channels = append(s.channels, *status)
 	}
 	fmt.Println()
-	log.Println("Cache fill complete, loaded", len(lineup), "channels with", totalPrograms, "programs in guide")
+	log.Println("Cache fill complete, loaded", len(s.channels), "channels with", totalPrograms, "programs in guide")
 
 	s.LastUpdate = time.Now()
 	s.ProgramCount = totalPrograms
@@ -163,7 +175,7 @@ func playlist(client *StirrClient) http.HandlerFunc {
 		w.Header().Set("Content-Type", "audio/x-mpegurl")
 
 		allLines := []string{}
-		
+
 		client.Lock()
 		defer client.Unlock()
 

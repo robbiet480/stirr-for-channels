@@ -64,12 +64,23 @@ type Channel struct {
 	Icon        struct {
 		Src string `json:"src"`
 	} `json:"icon"`
-	ID         string        `json:"id"`
-	Categories []interface{} `json:"categories"`
+	ID         string `json:"id"`
+	Number     int    `json:"num,string"`
+	Categories []struct {
+		UUID string `json:"uuid"`
+	} `json:"categories"`
+}
+
+type Category struct {
+	Order int    `json:"order"`
+	Name  string `json:"name"`
+	UUID  string `json:"uuid"`
+	Icon  string `json:"icon"`
 }
 
 type Lineup struct {
-	Channels []Channel `json:"channel"`
+	Channels   []Channel  `json:"channel"`
+	Categories []Category `json:"categories"`
 }
 
 type Image struct {
@@ -80,10 +91,11 @@ type Image struct {
 }
 
 type ChannelStatus struct {
-	ID       string
-	Programs []Program
-	Number   int
-	Rss      struct {
+	ID         string
+	Programs   []Program
+	Number     int
+	Categories []Category
+	Rss        struct {
 		XmlnsSinclair string `json:"xmlns:sinclair"`
 		XmlnsMedia    string `json:"xmlns:media"`
 		Channel       struct {
@@ -143,6 +155,7 @@ func (c *ChannelStatus) M3ULine() string {
 		"#EXTINF:0",
 		fmt.Sprintf(`channel-id="%s"`, c.ID),
 		fmt.Sprintf(`tvg-id="%s"`, c.ID),
+		fmt.Sprintf(`channel-number="%d"`, c.Number),
 		fmt.Sprintf(`tvg-logo="%s"`, c.Rss.Channel.Item.MediaContent.Logo.URL),
 		fmt.Sprintf(`tvg-name="%s"`, c.Rss.Channel.Title),
 	}
@@ -186,23 +199,44 @@ func (p *Program) XMLTV(cs ChannelStatus) xmltv.Programme {
 		tmp := xmltv.ElementPresent(p.IsLive)
 		live = &tmp
 	}
+
+	allCats := []xmltv.CommonElement{}
 	for x, c := range p.Categories {
 		if c.Value == "HD Unknown" {
 			p.Categories[x].Value = "HD"
 		}
+		if c.Value == "category" {
+			continue
+		}
+		if p.Categories[x].Lang == "eng" {
+			p.Categories[x].Lang = "en"
+		}
+		allCats = append(allCats, p.Categories[x])
+	}
+	for _, cat := range cs.Categories {
+		allCats = append(allCats, xmltv.CommonElement{Value: cat.Name, Lang: "en"})
 	}
 	if strings.HasSuffix(cs.Rss.Channel.Title, "Movies") {
-		p.Categories = append(p.Categories, xmltv.CommonElement{Value: "Movie"})
+		allCats = append(allCats, xmltv.CommonElement{Value: "Movie"})
 	}
-	return xmltv.Programme{
-		Titles:       []xmltv.CommonElement{p.Title},
-		Descriptions: []xmltv.CommonElement{p.Description},
-		Categories:   p.Categories,
-		Start:        &start,
-		Stop:         &stop,
-		Live:         live,
-		Channel:      fmt.Sprintf("stirr-%s", p.Channel),
+	if p.Title.Lang == "eng" {
+		p.Title.Lang = "en"
 	}
+	xtvP := xmltv.Programme{
+		Titles:     []xmltv.CommonElement{p.Title},
+		Categories: allCats,
+		Start:      &start,
+		Stop:       &stop,
+		Live:       live,
+		Channel:    cs.ID,
+	}
+	if p.Description.Value != "" {
+		if p.Description.Lang == "eng" {
+			p.Description.Lang = "en"
+		}
+		xtvP.Descriptions = []xmltv.CommonElement{p.Description}
+	}
+	return xtvP
 }
 
 type GuideData struct {
