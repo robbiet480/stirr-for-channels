@@ -32,6 +32,9 @@ jobs:
       - name: Wait for stirr-for-channels to start
         run: sleep 30
 
+      - name: dbg
+        run: ps aux
+
       - name: Download national EPG
         run: curl -o national.xml http://localhost:8088/epg.xml
 
