@@ -30,7 +30,7 @@ jobs:
           STIRR_STATION_ID: san-francisco
 
       - name: Wait for stirr-for-channels to start
-        run: sleep 30
+        run: sleep 60
 
       - name: Download national EPG
         run: curl -o national.xml http://localhost:8088/epg.xml
